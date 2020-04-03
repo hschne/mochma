@@ -2,12 +2,10 @@
 
 set -Eeo pipefail
 
-TAGS='TODO:|FIXME:'
+TAGS='FIXME'
 INCLUDE_GLOB=
 EXCLUDE_GLOB=
 PORCELAIN=
-
-CURRENT_DIR=
 
 mochma() {
   parse_args "$@"
@@ -17,7 +15,16 @@ mochma() {
   local files; files=$(git ls-files)
   [[ -n $EXCLUDE_GLOB ]] && files=$(echo "$files" | grep -vE "$EXCLUDE_GLOB" )
   [[ -n $INCLUDE_GLOB ]] && files=$(echo "$files" | grep -E "$INCLUDE_GLOB" )
-  files=$(echo "$files" | xargs git --no-pager grep -rn -E "$TAGS")
+
+  tags_regex=${TAGS//,/:|}
+  echo $EXCLUDE_GLOB
+  echo $tags_regex
+  echo $files | grep -vE "public" | xargs git --no-pager grep -rn -E "$tags_regex"
+  # sample=$(echo "$files" | xargs git --no-pager grep -rn -E "$tags_regex" )
+
+  echo "$sample"
+
+  exit 1
 
   local annotated_line
   while IFS=$'\n' read -r line; do
@@ -35,7 +42,7 @@ mochma() {
 # See https://stackoverflow.com/a/28466267/2553104
 parse_args() {
   local OPTARG
-  while getopts he-:i-:t:-p OPT; do
+  while getopts he-:i-:t-:p OPT; do
     if [ "$OPT" = "-" ]; then   
       OPT="${OPTARG%%=*}"      
       OPTARG="${OPTARG#$OPT}" 
@@ -59,7 +66,8 @@ get_blame() {
   local file line_number text comment matcher
   file=$(echo "$line" | cut -d':' -f1)
   line_number=$(echo "$line" | cut -d':' -f2)
-  text=$(echo "$line" | cut -d':' -f3- | sed -e 's/^.*\(TODO\|FIXME\): \(.*$\)/\1\/\2/')
+  tags_regex=$(echo "$TAGS" | sed 's/,/\\|/g')
+  text=$(echo "$line" | cut -d':' -f3- | sed -e "s/^.*\($tags_regex\): \(.*$\)/\1\/\2/")
   matcher=${text%%/*}
   comment="${text#*/}"
 
