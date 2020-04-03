@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-set -Eeo pipefail
+set -Eeuo pipefail
 
 TAGS='TODO,FIXME'
 INCLUDE_GLOB=
@@ -17,8 +17,8 @@ mochma() {
   [[ -n $INCLUDE_GLOB ]] && files=$(echo "$files" | grep -E "$INCLUDE_GLOB" )
 
   tags_regex=${TAGS//,/:|}
-  # Do not remove local below, this will for some reason break passing single tags
-  local todos=$(echo "$files" | xargs git --no-pager grep -rn -E $tags_regex )
+  # Append true, as the grep command may fail in some instances, but we don't want to fail the entire program 
+  files=$(echo "$files" | xargs git --no-pager grep -rn -E $tags_regex ) || true
 
   local annotated_line
   while IFS=$'\n' read -r line; do
@@ -29,7 +29,7 @@ mochma() {
       print_blame "$annotated_line"
     fi
 
-  done <<< "$todos"
+  done <<< "$files"
 }
 
 # Argument parsing, ripped from SO
