@@ -17,7 +17,8 @@ mochma() {
   [[ -n $INCLUDE_GLOB ]] && files=$(echo "$files" | grep -E "$INCLUDE_GLOB" )
 
   tags_regex=${TAGS//,/:|}
-  # Append true, as the grep command may fail in some instances, but we don't want to fail the entire program 
+  # Append true, as the grep command may return non zero codes in passsing instances
+  # We don't want to fail the entire program, and adding this avoids that
   files=$(echo "$files" | xargs git --no-pager grep -rn -E $tags_regex ) || true
 
   local annotated_line
@@ -60,7 +61,8 @@ get_blame() {
   local file line_number text comment matcher
   file=$(echo "$line" | cut -d':' -f1)
   line_number=$(echo "$line" | cut -d':' -f2)
-  tags_regex=$(echo "$TAGS" | sed 's/,/\\|/g')
+
+  tags_regex=${TAGS//,/\\|}
   text=$(echo "$line" | cut -d':' -f3- | sed -e "s/^.*\($tags_regex\): \(.*$\)/\1\/\2/")
   matcher=${text%%/*}
   comment="${text#*/}"
