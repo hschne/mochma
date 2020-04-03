@@ -1,0 +1,65 @@
+#! /usr/bin/env bash
+
+MATCHERS='TODO'
+
+main() {
+  local files=$(git ls-files | grep -v 'public' | xargs git --no-pager grep -rn -E 'TODO:|FIXME:')
+
+  local annotated_line
+  while IFS=$'\n' read -r line; do
+    annotated_line=$(get_blame "$line")
+    print_blame "$annotated_line"
+
+  done <<< "$files"
+}
+ 
+get_blame() {
+  local line=$1
+  local file line_number text comment matcher
+  file=$(echo "$line" | cut -d':' -f1)
+  line_number=$(echo "$line" | cut -d':' -f2)
+  text=$(echo "$line" | cut -d':' -f3- | sed -e 's/^.*\(TODO\|FIXME\): \(.*$\)/\1\/\2/')
+  matcher=${text%/*}
+  comment="${text#*/}"
+
+  local blame
+  blame=$(git blame --porcelain -L "$line_number","$line_number" "$file")
+  local commit author_name author_mail timestamp
+  commit=$(echo "$blame" | head -n 1 | cut -d' ' -f1)
+  author_name=$(echo "$blame" | grep '^author ' | sed 's/author \(.*\)/\1/')
+  author_mail=$(echo "$blame" | grep '^author-mail ' | sed 's/author-mail \(.*\)/\1/')
+  timestamp=$(echo "$blame" | grep '^author-time ' | sed 's/author-time \(.*\)/\1/')
+
+  printf "%s,%s,%s,%s,%s,%s,%s,\"%s\"\n" \
+    "$file" "$line_number" "$commit" "$author_name" "$author_mail" "$timestamp" "$matcher" "$comment" 
+}
+
+print_blame() {
+  local line=$1
+  local file line_number matcher comment commit author_name author_mail timestamp
+
+  file=$(echo "$line" | cut -d',' -f1)
+  line_number=$(echo "$line" | cut -d',' -f2)
+  commit=$(echo "$line" | cut -d',' -f3)
+  author_name=$(echo "$line" | cut -d',' -f4)
+  author_mail=$(echo "$line" | cut -d',' -f5)
+  timestamp=$(echo "$line" | cut -d',' -f6)
+
+  local pretty_time
+  pretty_time=$(date -d "@$timestamp")
+  
+  matcher=$(echo "$line" | cut -d',' -f7)
+  comment=$(echo "$line" | awk -vFPAT='([^,]*)|("[^"]+")' -vOFS=, '{print $8}')
+
+  local temp sanitized_comment
+  temp="${comment%\"}"
+  sanitized_comment="${temp#\"}"
+
+  printf "%s: %s\n" "$matcher" "$sanitized_comment" 
+  printf "%2s=> %s:%s\n" "" "$file" "$line_number"
+  printf "%2s=> On %s by %s %s in %s\n" "" "$pretty_time" "$author_name" "$author_mail" "$commit"
+  echo
+  
+}
+
+main "@"
