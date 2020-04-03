@@ -2,7 +2,7 @@
 
 set -Eeo pipefail
 
-TAGS='FIXME'
+TAGS='TODO,FIXME'
 INCLUDE_GLOB=
 EXCLUDE_GLOB=
 PORCELAIN=
@@ -17,14 +17,8 @@ mochma() {
   [[ -n $INCLUDE_GLOB ]] && files=$(echo "$files" | grep -E "$INCLUDE_GLOB" )
 
   tags_regex=${TAGS//,/:|}
-  echo $EXCLUDE_GLOB
-  echo $tags_regex
-  echo $files | grep -vE "public" | xargs git --no-pager grep -rn -E "$tags_regex"
-  # sample=$(echo "$files" | xargs git --no-pager grep -rn -E "$tags_regex" )
-
-  echo "$sample"
-
-  exit 1
+  # Do not remove local below, this will for some reason break passing single tags
+  local todos=$(echo "$files" | xargs git --no-pager grep -rn -E $tags_regex )
 
   local annotated_line
   while IFS=$'\n' read -r line; do
@@ -35,7 +29,7 @@ mochma() {
       print_blame "$annotated_line"
     fi
 
-  done <<< "$files"
+  done <<< "$todos"
 }
 
 # Argument parsing, ripped from SO
