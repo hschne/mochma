@@ -1,24 +1,32 @@
 #! /usr/bin/env bash
 
-set -Eeuo pipefail
+set -Eeo pipefail
 
-TAGS='TODO,FIXME'
-
+TAGS='TODO:|FIXME:'
 INCLUDE_GLOB=
 EXCLUDE_GLOB=
+PORCELAIN=
+
+CURRENT_DIR=
 
 mochma() {
   parse_args "$@"
 
+  inside_work_tree || die 'Not a git repository'
+
   local files; files=$(git ls-files)
   [[ -n $EXCLUDE_GLOB ]] && files=$(echo "$files" | grep -vE "$EXCLUDE_GLOB" )
   [[ -n $INCLUDE_GLOB ]] && files=$(echo "$files" | grep -E "$INCLUDE_GLOB" )
-  files=$(echo "$files" | xargs git --no-pager grep -rn -E 'TODO:|FIXME:')
+  files=$(echo "$files" | xargs git --no-pager grep -rn -E "$TAGS")
 
   local annotated_line
   while IFS=$'\n' read -r line; do
     annotated_line=$(get_blame "$line")
-    print_blame "$annotated_line"
+    if [[ -n $PORCELAIN ]]; then 
+      echo "$annotated_line"
+    else
+      print_blame "$annotated_line"
+    fi
 
   done <<< "$files"
 }
@@ -26,7 +34,8 @@ mochma() {
 # Argument parsing, ripped from SO
 # See https://stackoverflow.com/a/28466267/2553104
 parse_args() {
-  while getopts he:i: OPT; do
+  local OPTARG
+  while getopts he-:i-:t:-p OPT; do
     if [ "$OPT" = "-" ]; then   
       OPT="${OPTARG%%=*}"      
       OPTARG="${OPTARG#$OPT}" 
@@ -34,8 +43,10 @@ parse_args() {
     fi
     case "$OPT" in
       h | help )     usage ;;
-      e | exclude )  needs_arg; EXCLUDE_GLOB="$OPTARG" ;;
-      i | include )  needs_arg; INCLUDE_GLOB="$OPTARG" ;;
+      exclude )      needs_arg; EXCLUDE_GLOB="$OPTARG" ;;
+      include )      needs_arg; INCLUDE_GLOB="$OPTARG" ;;
+      t | tags )     needs_arg; TAGS="$OPTARG" ;;
+      p | porcelain )PORCELAIN=1 ;;
       ??* )          die "Illegal option --$OPT" ;;  # bad long option
       \? )           exit 2 ;;  # bad short option (error reported via getopts)
     esac
@@ -96,25 +107,33 @@ print_blame() {
 usage () {
   cat <<EOF
 
-Usage: $0 [options]
+Usage: mochma [options] 
 
 A tickgit clone written in bash
 
-Options: 
-  -a, --author=NAME    Limit output to author
-  -e, --exclude=GLOB   Exclude a number of files from being parsed
-  -g, --group-by=COL   Group output by file, author or date. Default is date
-  -h, --help           Exclude a number of files from being parsed
-  -i, --include=GLOB   Limit to specified patterns
-  -o, --order-by=COL   Sort output by file, author or date. Default is date
-  -p, --porcelain      Produce machine readable output
-  -t, --tags=TAGS      Set tags to scan for. Default is 'TODO,FIXME'
+Input control: 
+      --include=GLOB     Include only files specified by the pattern
+      --exclude=GLOB     Exclude files specified by the pattern
+  -t, --tags=TAGS        Set tags to scan for. Default is 'TODO,FIXME'
+
+Output control:
+  -a, --author=NAME      Limit output to author
+      --author-mail=MAIL Limit output to author
+  -g, --group-by=COL     Group output by file, author or date. Default is date
+  -o, --order=ORDER      Sort either ascending or descending
+      --order-by=COL     Sort output by file, author or date. Default is date
+  -p, --porcelain        Produce machine readable output
+
+Misc: 
+  -h, --help             Exclude a number of files from being parsed
 EOF
 
   exit 0
 }
 
-inside_work_tree() { git rev-parse --is-inside-work-tree >/dev/null; }
+inside_work_tree() { git rev-parse --is-inside-work-tree >/dev/null 2>&1; }
+
+error() { printf "%b[Error]%b %s\n" '\e[0;33m' '\e[0m' "$@" >&2; }
 
 warn() { printf "%b[Warn]%b %s\n" '\e[0;33m' '\e[0m' "$@" >&2; }
 
@@ -125,9 +144,5 @@ sourced() { [ "${0}" != "${BASH_SOURCE[0]}" ];  }
 needs_arg() { if [ -z "$OPTARG" ]; then die "No arg for --$OPT option"; fi; }
 
 die() { echo "$*" >&2; exit 1; } 
-
-handle_error() { echo "An error occured, exit code $?"; }
-
-trap 'handle_error $?' ERR
 
 if ! sourced; then mochma "$@"; fi
