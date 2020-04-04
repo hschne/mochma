@@ -58,15 +58,21 @@ mochma() {
       echo "$blame"
     else
       print_blame "$blame"
+     
+
+      local count="${#sorted_blames[@]}"
     fi
   done
+
+
+  [[ -z $PORCELAIN ]] && printf "Found %s items ✅\n" "$count"
 }
 
 # Argument parsing, ripped from SO
 # See https://stackoverflow.com/a/28466267/2553104
 parse_args() {
   local OPTARG
-  while getopts hpt-:a-:r-: OPT; do
+  while getopts hprt:a:-: OPT; do
     if [ "$OPT" = "-" ]; then   
       OPT="${OPTARG%%=*}"      
       OPTARG="${OPTARG#$OPT}" 
