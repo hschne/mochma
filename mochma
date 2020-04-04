@@ -6,6 +6,8 @@ TAGS='TODO,FIXME'
 INCLUDE_GLOB=
 EXCLUDE_GLOB=
 PORCELAIN=
+AUTHOR=
+AUTHOR_MAIL=
 
 mochma() {
   parse_args "$@"
@@ -21,33 +23,56 @@ mochma() {
   # We don't want to fail the entire program, and adding this avoids that
   files=$(echo "$files" | xargs git --no-pager grep -rn -E $tags_regex ) || true
 
-  local annotated_line
+  local blames=()
   while IFS=$'\n' read -r line; do
     annotated_line=$(get_blame "$line")
-    if [[ -n $PORCELAIN ]]; then 
-      echo "$annotated_line"
-    else
-      print_blame "$annotated_line"
-    fi
-
+    blames+=("$annotated_line")
   done <<< "$files"
+
+  local filtered_blames=()
+  if [[ -n $AUTHOR ]] || [[ -n $AUTHOR_MAIL ]]; then 
+    for blame in "${blames[@]}"; do
+      if [[ -n "$AUTHOR" ]]; then 
+        local author_name; author_name=$(echo "$blame" | cut -d',' -f4)
+        [[ "$author_name" == "$AUTHOR" ]] && filtered_blames+=("$blame");
+      fi
+      if [[ -n "$AUTHOR_MAIL" ]]; then 
+        local author_mail; author_mail=$(echo "$blame" | cut -d',' -f5)
+        [[ "$author_mail" == "$AUTHOR_MAIL" ]] && filtered_blames+=("$blame");
+      fi
+    done
+  else
+    filtered_blames=("${blames[@]}")
+  fi
+
+
+  for blame in "${filtered_blames[@]}"; do
+    if [[ -n $PORCELAIN ]]; then 
+      echo "$blame"
+    else
+      print_blame "$blame"
+    fi
+  done
 }
 
 # Argument parsing, ripped from SO
 # See https://stackoverflow.com/a/28466267/2553104
 parse_args() {
   local OPTARG
-  while getopts he-:i-:t-:p OPT; do
+  while getopts hpt-:a-: OPT; do
     if [ "$OPT" = "-" ]; then   
       OPT="${OPTARG%%=*}"      
       OPTARG="${OPTARG#$OPT}" 
       OPTARG="${OPTARG#=}"   
     fi
+   # shellcheck disable=SC2214
     case "$OPT" in
       h | help )     usage ;;
       exclude )      needs_arg; EXCLUDE_GLOB="$OPTARG" ;;
       include )      needs_arg; INCLUDE_GLOB="$OPTARG" ;;
       t | tags )     needs_arg; TAGS="$OPTARG" ;;
+      a | author )   needs_arg; AUTHOR="$OPTARG" ;;
+      author-mail )  needs_arg; AUTHOR_MAIL="$OPTARG" ;;
       p | porcelain )PORCELAIN=1 ;;
       ??* )          die "Illegal option --$OPT" ;;  # bad long option
       \? )           exit 2 ;;  # bad short option (error reported via getopts)
@@ -73,6 +98,7 @@ get_blame() {
   commit=$(echo "$blame" | head -n 1 | cut -d' ' -f1)
   author_name=$(echo "$blame" | grep '^author ' | sed 's/author \(.*\)/\1/')
   author_mail=$(echo "$blame" | grep '^author-mail ' | sed 's/author-mail \(.*\)/\1/')
+  author_mail=${author_mail:1:-1}
   timestamp=$(echo "$blame" | grep '^author-time ' | sed 's/author-time \(.*\)/\1/')
 
   printf "%s,%s,%s,%s,%s,%s,%s,\"%s\"\n" \
@@ -104,7 +130,7 @@ print_blame() {
   local default="\e[0m"
   printf "${yellow}%s${default}: %s\n" "$matcher" "$sanitized_comment" 
   printf "%2s=> %s:%s\n" "" "$file" "$line_number"
-  printf "%2s=> On %s by %s %s in %s\n" "" "$pretty_time" "$author_name" "$author_mail" "$commit"
+  printf "%2s=> On %s by %s <%s> in %s\n" "" "$pretty_time" "$author_name" "$author_mail" "$commit"
   echo
 }
 
@@ -123,7 +149,6 @@ Input control:
 Output control:
   -a, --author=NAME      Limit output to author
       --author-mail=MAIL Limit output to author
-  -g, --group-by=COL     Group output by file, author or date. Default is date
   -o, --order=ORDER      Sort either ascending or descending
       --order-by=COL     Sort output by file, author or date. Default is date
   -p, --porcelain        Produce machine readable output
