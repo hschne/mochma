@@ -8,6 +8,8 @@ EXCLUDE_GLOB=
 PORCELAIN=
 AUTHOR=
 AUTHOR_MAIL=
+REVERSE=0
+ORDER_BY=
 
 mochma() {
   parse_args "$@"
@@ -45,8 +47,16 @@ mochma() {
     filtered_blames=("${blames[@]}")
   fi
 
+  local sorted_blames=()
+  if [[ "$REVERSE" == 1 ]]; then 
+    mapfile -t sorted_blames < <(printf '%s\n' "${filtered_blames[@]}" | tac)
+  else
+    sorted_blames=("${filtered_blames[@]}")
+  fi
 
-  for blame in "${filtered_blames[@]}"; do
+
+
+  for blame in "${sorted_blames[@]}"; do
     if [[ -n $PORCELAIN ]]; then 
       echo "$blame"
     else
@@ -59,7 +69,7 @@ mochma() {
 # See https://stackoverflow.com/a/28466267/2553104
 parse_args() {
   local OPTARG
-  while getopts hpt-:a-: OPT; do
+  while getopts hpt-:a-:r-: OPT; do
     if [ "$OPT" = "-" ]; then   
       OPT="${OPTARG%%=*}"      
       OPTARG="${OPTARG#$OPT}" 
@@ -73,6 +83,8 @@ parse_args() {
       t | tags )     needs_arg; TAGS="$OPTARG" ;;
       a | author )   needs_arg; AUTHOR="$OPTARG" ;;
       author-mail )  needs_arg; AUTHOR_MAIL="$OPTARG" ;;
+      r | reverse )  REVERSE=1 ;;
+      order-by )     needs_arg; ORDER_BY="$OPTARG" ;;
       p | porcelain )PORCELAIN=1 ;;
       ??* )          die "Illegal option --$OPT" ;;  # bad long option
       \? )           exit 2 ;;  # bad short option (error reported via getopts)
@@ -80,6 +92,7 @@ parse_args() {
   done
   shift $((OPTIND-1))
 }
+
 
 get_blame() {
   local line=$1
