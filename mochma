@@ -9,7 +9,6 @@ PORCELAIN=
 AUTHOR=
 AUTHOR_MAIL=
 REVERSE=0
-ORDER_BY=
 
 mochma() {
   parse_args "$@"
@@ -54,8 +53,6 @@ mochma() {
     sorted_blames=("${filtered_blames[@]}")
   fi
 
-
-
   for blame in "${sorted_blames[@]}"; do
     if [[ -n $PORCELAIN ]]; then 
       echo "$blame"
@@ -84,7 +81,6 @@ parse_args() {
       a | author )   needs_arg; AUTHOR="$OPTARG" ;;
       author-mail )  needs_arg; AUTHOR_MAIL="$OPTARG" ;;
       r | reverse )  REVERSE=1 ;;
-      order-by )     needs_arg; ORDER_BY="$OPTARG" ;;
       p | porcelain )PORCELAIN=1 ;;
       ??* )          die "Illegal option --$OPT" ;;  # bad long option
       \? )           exit 2 ;;  # bad short option (error reported via getopts)
@@ -162,8 +158,7 @@ Input control:
 Output control:
   -a, --author=NAME      Limit output to author
       --author-mail=MAIL Limit output to author
-  -o, --order=ORDER      Sort either ascending or descending
-      --order-by=COL     Sort output by file, author or date. Default is date
+  -r, --reverse          Reverse the output
   -p, --porcelain        Produce machine readable output
 
 Misc: 
@@ -175,16 +170,10 @@ EOF
 
 inside_work_tree() { git rev-parse --is-inside-work-tree >/dev/null 2>&1; }
 
-error() { printf "%b[Error]%b %s\n" '\e[0;33m' '\e[0m' "$@" >&2; }
-
-warn() { printf "%b[Warn]%b %s\n" '\e[0;33m' '\e[0m' "$@" >&2; }
-
-info() { printf "%b[Info]%b %s\n" '\e[0;32m' '\e[0m' "$@" >&2; }
-
-sourced() { [ "${0}" != "${BASH_SOURCE[0]}" ];  }
-
 needs_arg() { if [ -z "$OPTARG" ]; then die "No arg for --$OPT option"; fi; }
 
 die() { echo "$*" >&2; exit 1; } 
+
+sourced() { [ "${0}" != "${BASH_SOURCE[0]}" ];  }
 
 if ! sourced; then mochma "$@"; fi
