@@ -1,7 +1,7 @@
 <h1 align="center">Mochma</h1> 
 
 <p align="center">
-  Jo eh, des moch ma <i>- Ancient Viennese Proverb</i>
+  "Jo eh, des moch ma!" <i>- Ancient Viennese Proverb</i>
 </p>
 </p>
 <p align="center">
@@ -9,10 +9,24 @@
 <a href="https://forthebadge.com"><img src="https://forthebadge.com/images/badges/uses-git.svg"></a>
 </p>
 
+```bash
+react on  master
+❯ mochma --include='react-dom/src/events' --author-mail='dan.abramov@gmail.com'
+
+TODO: can we stop exporting these?
+  => packages/react-dom/src/events/ReactDOMEventListener.js:79
+  => On Sun 05 Nov 2017 12:58:36 PM CET by Dan Abramov <dan.abramov@gmail.com> in 92b7b172cce...
+
+TODO: we might want to re-add a warning like this in the future,
+  => packages/react-dom/src/events/__tests__/SyntheticEvent-test.js:320
+  => On Wed 18 Jul 2018 01:14:13 AM CEST by Dan Abramov <dan.abramov@gmail.com> in acbb4f93f0...
+
+Found 2 items ✅
+```
 
 ## Getting Started
 
-Download the mochma executable and run it
+Mochma extracts TODOs and FIXMEs from files tracked in Git. Download the mochma executable and run it
 
 ```
 wget https://raw.githubusercontent.com/hschne/mochma/master/mochma && mochma
@@ -28,17 +42,19 @@ mochma --exclude='public|*.js' --include='*.rb' --tags 'FIXME,PERFORMANCE' --aut
 
 You can run `mochma --help` to view various options
 
-## FAQ
+## Q&A
 
 ### Why would you do this in bash?
 
 I like bash. 
 
+### This blows, are there any alternatives? 
+
+Sure. This was actually inspired by [ticket](https://github.com/augmentable-dev/tickgit), but there's also [leasot](https://github.com/pgilad/leaso). Various IDEs and editors also provide this functionality.
 
 ### What's with the project name? 
 
-I'm glad you asked. "Moch ma" is austrian slang that loosely translates to "let's do it, but actually don't. You and me both know we'll just forget about this". I thought that was fitting for code TODOs :man_shrugging: 
-
+I'm glad you asked. "Moch ma" is austrian slang that loosely translates to "let's do it, but actually don't. You and me both know we'll just forget about this". I just thought that is quite fitting for this kind of application :man_shrugging: 
 
 ## Contributing
 
