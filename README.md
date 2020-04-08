@@ -42,7 +42,7 @@ Mochma provides various options to make it fit with your specific project.
 mochma --exclude='public|*.js' --include='*.rb' --tags 'FIXME,PERFORMANCE' --author-mail="your.mail@email.com"
 ```
 
-You can run `mochma --help` to view various options
+You can run `mochma --help` to view usage information.
 
 ## Q&A
 
