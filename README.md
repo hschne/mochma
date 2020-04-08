@@ -29,12 +29,14 @@ Found 2 items ✅
 Mochma extracts TODOs and FIXMEs from files tracked in Git. Download the mochma executable and run it
 
 ```
-wget https://raw.githubusercontent.com/hschne/mochma/master/mochma && mochma
+wget https://raw.githubusercontent.com/hschne/mochma/master/mochma && chmod +x ./mochma && ./mochma
 ```
+
+To run `mochma` anywhere be sure to download it to a location on your `$PATH`
 
 ## Advanced Usage
 
-Mochma provides various options to fit your specific project. 
+Mochma provides various options to make it fit with your specific project.
 
 ```
 mochma --exclude='public|*.js' --include='*.rb' --tags 'FIXME,PERFORMANCE' --author-mail="your.mail@email.com"
@@ -48,13 +50,13 @@ You can run `mochma --help` to view various options
 
 I like bash. 
 
-### This blows, are there any alternatives? 
+### I don't like bash, are there any alternatives? 
 
 Sure. This was actually inspired by [ticket](https://github.com/augmentable-dev/tickgit), but there's also [leasot](https://github.com/pgilad/leaso). Various IDEs and editors also provide this functionality.
 
 ### What's with the project name? 
 
-I'm glad you asked. "Moch ma" is austrian slang that loosely translates to "let's do it, but actually don't. You and me both know we'll just forget about this". I just thought that is quite fitting for this kind of application :man_shrugging: 
+I'm glad you asked. "Moch ma" is austrian slang that loosely translates to "let's do it, but actually don't, because you and I both know we'll just forget about this anyway". I just thought that fitting for this kind of application :man_shrugging: 
 
 ## Contributing
 
