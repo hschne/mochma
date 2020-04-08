@@ -52,7 +52,7 @@ I like bash.
 
 ### I don't like bash, are there any alternatives? 
 
-Sure. This was actually inspired by [ticket](https://github.com/augmentable-dev/tickgit), but there's also [leasot](https://github.com/pgilad/leaso). Various IDEs and editors also provide this functionality.
+Sure. This was actually inspired by [tickgit](https://github.com/augmentable-dev/tickgit), but there's also [leasot](https://github.com/pgilad/leaso). Various IDEs and editors also provide this functionality.
 
 ### What's with the project name? 
 
