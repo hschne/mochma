@@ -28,6 +28,11 @@ Found 2 items ✅
 
 Mochma extracts TODOs and FIXMEs from files tracked in Git. Download the mochma executable and run it
 
+**Curl**:
+```
+curl -O https://raw.githubusercontent.com/hschne/mochma/master/mochma && chmod +x ./mochma && ./mochma
+```
+**Wget**:
 ```
 wget https://raw.githubusercontent.com/hschne/mochma/master/mochma && chmod +x ./mochma && ./mochma
 ```
