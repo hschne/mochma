@@ -39,7 +39,7 @@ To run `mochma` anywhere be sure to download it to a location on your `$PATH`.
 Mochma provides various options to make it fit with your specific project.
 
 ```
-mochma --exclude='public|*.js' --include='*.rb' --tags 'FIXME,PERFORMANCE' --author-mail="your.mail@email.com"
+mochma --exclude='public|*.js' --include='*.rb' --tags='FIXME,PERFORMANCE' --author-mail="your.mail@email.com"
 ```
 
 You can run `mochma --help` to view usage information.
@@ -56,7 +56,7 @@ Sure. This was actually inspired by [tickgit](https://github.com/augmentable-dev
 
 ### What's with the project name? 
 
-I'm glad you asked. "Moch ma" is austrian slang that loosely translates to "let's do it, but actually don't, because you and I both know we'll just forget about this anyway". I just thought that fitting for this kind of application :man_shrugging: 
+I'm glad you asked. "Moch ma" is austrian slang that loosely translates to "let's do it, but actually don't, because you and I both know we'll just forget about this anyway". It's a perfect fit for a tool like this :man_shrugging: 
 
 ## Contributing
 
